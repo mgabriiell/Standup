@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!--
+AVISO DE PROVENIÊNCIA — Gerado no ambiente da Prime Holding.
+Modelo: Claude Opus 5.5 (claude-opus-5-5)
+Solicitante: rosameire.henriques@vmimedica.com.br
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Formulário Comercial D-1 · VMI Médica</title>
+<link rel="icon" href="assets/img/vmim-dourado.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/estilo.css">
+<style>
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+@media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+.setores { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.setores button { font-family: var(--fonte); font-size: 14px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--linha); background: #fff; color: var(--texto); cursor: pointer; }
+.setores button:hover { border-color: var(--primaria); }
+.setores button.ativo { background: var(--primaria); border-color: var(--primaria); color: var(--primaria-texto); font-weight: 700; }
+.linha-topo { display: grid; grid-template-columns: 200px 1fr; gap: 14px; margin-bottom: 6px; }
+.campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px 16px; margin-top: 8px; }
+.campo label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--titulo); }
+.campo label .req { color: var(--erro); margin-left: 2px; }
+.campo .ajuda { font-size: 12px; color: var(--secundaria); margin-top: 3px; }
+.campo.largo { grid-column: 1 / -1; }
+input, textarea { font-family: var(--fonte); font-size: 15px; width: 100%; padding: 8px 10px; border: 1px solid #CFC5AE; border-radius: 6px; background: #fff; color: var(--texto); }
+input:focus, textarea:focus { outline: 2px solid var(--primaria); outline-offset: 0; border-color: var(--primaria); }
+input.invalido { border-color: var(--erro); background: var(--erro-fundo); }
+input[readonly] { background: var(--fundo-suave); }
+textarea { min-height: 70px; resize: vertical; }
+input.num { text-align: right; font-variant-numeric: tabular-nums; }
+.calculos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 16px; }
+.calc { background: var(--fundo-suave); border-radius: 6px; padding: 10px 12px; }
+.calc .r { font-size: 12px; color: var(--secundaria); }
+.calc .v { font-size: 18px; font-weight: 700; color: var(--titulo); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.itens td input { padding: 6px 8px; font-size: 14px; }
+.itens td { padding: 4px 6px; }
+.acoes { display: flex; gap: 10px; margin-top: 20px; align-items: center; flex-wrap: wrap; }
+.acoes .dir { margin-left: auto; }
+.btn.perigo { background: #fff; color: var(--erro); border-color: var(--erro); }
+.btn.perigo:hover { background: var(--erro-fundo); }
+.bloqueio { position: relative; }
+.bloqueio.travado > *:not(.cobre) { opacity: .35; pointer-events: none; }
+.cobre { display: none; }
+.bloqueio.travado .cobre { display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; z-index: 2; }
+.cobre div { background: #fff; border: 1px solid var(--linha); border-radius: 8px; padding: 14px 18px; font-weight: 600; box-shadow: 0 4px 18px rgba(0,0,0,.08); max-width: 420px; text-align: center; }
+.ultimos .vazio { color: var(--secundaria); font-size: 13px; }
+.navlink { font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <img src="assets/img/vmim-dourado.png" alt="VMI Médica">
+  <div class="tit">
+    <h1>Formulário diário do Comercial (D-1)</h1>
+    <div class="sub">Cada responsável preenche o seu setor · <a class="navlink" href="dashboard.html">abrir o dashboard</a></div>
+  </div>
+  <div class="conexao">
+    <span id="stConexao" class="pill off">Pasta de dados não conectada</span>
+    <span id="nomePasta"></span>
+    <button class="btn sec peq oculto" id="btReconectar" type="button">Reconectar</button>
+    <button class="btn peq" id="btEscolher" type="button">Selecionar pasta de dados</button>
+  </div>
+</header>
+
+<main>
+  <div id="avisoCompat" class="aviso erro oculto"><b>Navegador não compatível.</b> Abra este endereço no <b>Microsoft Edge</b> ou no <b>Google Chrome</b> (computador). Outros navegadores não conseguem gravar na pasta de dados.</div>
+
+  <div class="layout">
+    <section class="cartao bloqueio travado" id="painel">
+      <div class="cobre"><div>Conecte a pasta de dados para começar: botão <b>Selecionar pasta de dados</b>, no topo. Escolha a pasta <b>dados</b> do Stand Up compartilhada no Teams.</div></div>
+      <h2>Registro do dia</h2>
+      <div class="setores" id="setores" role="tablist"></div>
+      <div class="linha-topo">
+        <div class="campo"><label for="inData">Data de referência <span class="req">*</span></label><input type="date" id="inData"><div class="ajuda" id="ajudaData"></div></div>
+        <div class="campo"><label for="inResp">Responsável pelo preenchimento <span class="req">*</span></label><input type="text" id="inResp" placeholder="Seu nome" autocomplete="name"></div>
+      </div>
+      <div id="avisoExiste" class="aviso info oculto"></div>
+      <div id="campos" class="campos"></div>
+      <div id="blocoItens" class="oculto">
+        <h3>Vendas do dia</h3>
+        <table class="tab itens"><thead><tr><th style="width:38%">Venda (órgão / processo)</th><th style="width:18%" class="n">Valor (R$)</th><th>Equipamentos</th><th style="width:40px"></th></tr></thead><tbody id="corpoItens"></tbody>
+          <tfoot><tr><td><button class="btn sec peq" type="button" id="btAddItem">+ Adicionar venda</button></td><td class="n"><b id="totalItens">R$ 0,00</b></td><td colspan="2" style="color:var(--secundaria);font-size:12px">Sem vendas no dia? Deixe a lista vazia e salve mesmo assim.</td></tr></tfoot></table>
+      </div>
+      <div id="calculos" class="calculos"></div>
+      <div class="acoes">
+        <button class="btn" id="btSalvar" type="button">Salvar</button>
+        <button class="btn sec" id="btLimpar" type="button">Limpar</button>
+        <button class="btn perigo dir oculto" id="btExcluir" type="button">Excluir registro desta data</button>
+      </div>
+      <div id="msg" class="aviso oculto" role="status"></div>
+    </section>
+
+    <aside class="cartao ultimos">
+      <h2 id="tituloUltimos">Últimos registros</h2>
+      <div id="ultimos"><div class="vazio">Conecte a pasta de dados para ver os registros.</div></div>
+    </aside>
+  </div>
+</main>
+<footer class="rod">VMI Médica · Acompanhamento Comercial</footer>
+
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/conexao.js"></script>
+<script>
+(function () {
+  'use strict';
+  const B = window.Base, C = window.Conexao;
+  const $ = id => document.getElementById(id);
+  const MODO = 'readwrite';
+  let dados = null, setorAtual = localStorage.getItem('vmim-setor') || 'juridico', recebidoMesManual = false;
+  if (!B.setor(setorAtual)) setorAtual = 'juridico';
+
+  // ---------- conexão ----------
+  function stConexao(tipo, texto) { const e = $('stConexao'); e.className = 'pill ' + tipo; e.textContent = texto; }
+  async function carregar() {
+    dados = await C.lerTudo(B);
+    stConexao('ok', 'Pasta conectada'); $('nomePasta').textContent = C.nome;
+    $('btReconectar').classList.add('oculto');
+    $('painel').classList.remove('travado');
+  }
+  async function conectarFluxo(fn) {
+    try {
+      if ((await fn()) === false) return;
+      await carregar(); renderTudo();
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      mostrar('erro', esc(e.message || String(e)));
+    }
+  }
+  $('btEscolher').onclick = () => conectarFluxo(async () => { await C.escolher(MODO); return C.prepararPasta(B, true); });
+  $('btReconectar').onclick = () => conectarFluxo(async () => { if (!(await C.pedirPermissao(MODO))) throw new Error('Permissão negada para acessar a pasta de dados.'); });
+
+  // ---------- utilidades ----------
+  function mostrar(tipo, html) { const m = $('msg'); m.className = 'aviso ' + tipo; m.innerHTML = html; }
+  function esconderMsg() { $('msg').className = 'aviso oculto'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function fmtCampo(n) { return n == null ? '' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function feriados() { return dados ? dados.feriados : B.feriadosDe(B.configPadrao()); }
+  function dataSel() { return $('inData').value ? B.deIso($('inData').value) : null; }
+  function campo(k) { return document.querySelector('#campos [data-k="' + k + '"]'); }
+  function lerNum(k) { const e = campo(k); return e ? B.parseNum(e.value) : null; }
+  function setar(k, v, tipo) { const e = campo(k); if (e) e.value = v == null ? '' : (tipo === 'moeda' ? fmtCampo(v) : v); }
+  function lista(id) { return dados ? dados.setores[id] || [] : []; }
+
+  // ---------- montagem ----------
+  function renderSetores() {
+    $('setores').innerHTML = B.SETORES.map(s => '<button type="button" role="tab" data-s="' + s.id + '" class="' + (s.id === setorAtual ? 'ativo' : '') + '">' + s.nome + '</button>').join('');
+    $('setores').querySelectorAll('button').forEach(b => b.onclick = () => { setorAtual = b.dataset.s; localStorage.setItem('vmim-setor', setorAtual); renderTudo(); });
+  }
+  const AJUDA = {
+    previsto_d1: 'Vem preenchido com a previsão informada no registro anterior; ajuste se necessário.',
+    previsao_hoje: 'Quanto se espera receber no dia útil seguinte à data de referência (o dia da reunião).',
+    recebido_mes: 'Calculado: total do registro anterior do mês + recebido no dia. Pode ser editado.',
+    meta_global: 'Repete a meta do último registro.',
+    total_pedidos_ano: 'Valor acumulado de pedidos de 01/01 até a data de referência.'
+  };
+  function renderCampos() {
+    const s = B.setor(setorAtual);
+    $('campos').innerHTML = s.campos.map(c => {
+      const id = 'f_' + c.k, req = c.req ? '<span class="req">*</span>' : '';
+      let inp;
+      if (c.t === 'texto') inp = '<textarea id="' + id + '" data-k="' + c.k + '" maxlength="2000"></textarea>';
+      else if (c.t === 'int') inp = '<input id="' + id + '" data-k="' + c.k + '" class="num" type="number" min="0" step="1" inputmode="numeric">';
+      else inp = '<input id="' + id + '" data-k="' + c.k + '" class="num" type="text" inputmode="decimal" placeholder="0,00"' + (c.calc ? ' readonly tabindex="-1"' : '') + '>';
+      return '<div class="campo' + (c.t === 'texto' ? ' largo' : '') + '"><label for="' + id + '">' + c.l + req + '</label>' + inp +
+        (AJUDA[c.k] ? '<div class="ajuda">' + AJUDA[c.k] + '</div>' : '') + '</div>';
+    }).join('');
+    $('campos').querySelectorAll('input[inputmode="decimal"]').forEach(e => {
+      e.addEventListener('blur', () => { const n = B.parseNum(e.value); if (n != null) e.value = fmtCampo(n); recalcular(); });
+      e.addEventListener('input', () => { if (e.dataset.k === 'recebido_mes') recebidoMesManual = true; recalcular(); });
+    });
+    $('campos').querySelectorAll('input[type="number"]').forEach(e => e.addEventListener('input', recalcular));
+    $('blocoItens').classList.toggle('oculto', !s.itens);
+  }
+  function linhaItem(it) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="text" data-i="venda" maxlength="300"></td><td><input type="text" data-i="valor" class="num" inputmode="decimal" placeholder="0,00"></td><td><input type="text" data-i="equipamentos" maxlength="500"></td><td><button class="btn sec peq" type="button" title="Remover venda" aria-label="Remover venda">×</button></td>';
+    if (it) { tr.querySelector('[data-i=venda]').value = it.venda || ''; tr.querySelector('[data-i=valor]').value = fmtCampo(it.valor); tr.querySelector('[data-i=equipamentos]').value = it.equipamentos || ''; }
+    const v = tr.querySelector('[data-i=valor]');
+    v.addEventListener('blur', () => { const n = B.parseNum(v.value); if (n != null) v.value = fmtCampo(n); totalItens(); });
+    v.addEventListener('input', totalItens);
+    tr.querySelector('button').onclick = () => { tr.remove(); totalItens(); };
+    $('corpoItens').appendChild(tr);
+  }
+  function lerItens() {
+    return Array.from($('corpoItens').querySelectorAll('tr')).map(tr => ({
+      venda: tr.querySelector('[data-i=venda]').value.trim(),
+      valor: B.parseNum(tr.querySelector('[data-i=valor]').value),
+      equipamentos: tr.querySelector('[data-i=equipamentos]').value.trim(), _tr: tr
+    })).filter(i => i.venda || i.valor != null || i.equipamentos);
+  }
+  function totalItens() { $('totalItens').textContent = B.moeda(lerItens().reduce((a, i) => a + (i.valor || 0), 0)); }
+  $('btAddItem').onclick = () => linhaItem();
+
+  // ---------- valores do dia / sugestões ----------
+  function anterior(setorId, data) { const l = lista(setorId).filter(r => r.data_ref < data); return l.length ? l[l.length - 1] : null; }
+  function carregarValores() {
+    const s = B.setor(setorAtual), data = dataSel();
+    renderCampos();
+    $('corpoItens').innerHTML = ''; recebidoMesManual = false;
+    $('avisoExiste').classList.add('oculto'); $('btExcluir').classList.add('oculto');
+    $('inResp').value = localStorage.getItem('vmim-resp-' + setorAtual) || '';
+    if (!dados || !data) { recalcular(); totalItens(); return; }
+    const ex = B.registroDoDia(lista(setorAtual), data);
+    if (ex) {
+      s.campos.forEach(c => setar(c.k, ex[c.k], c.t));
+      if (s.itens) (ex.itens || []).forEach(linhaItem);
+      recebidoMesManual = true;
+      $('avisoExiste').innerHTML = '<b>Já existe registro de ' + s.nome + ' para ' + B.br(data) + '</b> (' + esc(ex.responsavel || 'sem nome') +
+        (ex.registrado_em ? ', ' + B.brHora(ex.registrado_em) : '') + '). Os valores foram carregados; ao salvar, o registro será substituído.';
+      $('avisoExiste').classList.remove('oculto'); $('btExcluir').classList.remove('oculto');
+    } else {
+      const ant = anterior(setorAtual, data);
+      if (setorAtual === 'juridico' && ant) setar('previsto_d1', ant.previsao_hoje, 'moeda');
+      if (setorAtual === 'geral' && ant) {
+        setar('meta_global', ant.meta_global, 'moeda');
+        const e = campo('total_pedidos_ano'); if (e && ant.total_pedidos_ano != null) e.placeholder = 'Último: ' + fmtCampo(ant.total_pedidos_ano);
+      }
+    }
+    recalcular(); totalItens();
+  }
+
+  function calc(r, v) { return '<div class="calc"><div class="r">' + r + '</div><div class="v">' + v + '</div></div>'; }
+  function recalcular() {
+    const data = dataSel(); let h = '';
+    if (setorAtual === 'juridico') {
+      const p = lerNum('previsto_d1'), r = lerNum('recebido_d1');
+      setar('diferenca', p != null && r != null ? r - p : null, 'moeda');
+      if (!recebidoMesManual && dados && data) {
+        const ant = anterior('juridico', data);
+        const mesmoMes = ant && ant.data_ref.getUTCMonth() === data.getUTCMonth() && ant.data_ref.getUTCFullYear() === data.getUTCFullYear();
+        const base = mesmoMes ? (ant.recebido_mes || 0) : 0;
+        setar('recebido_mes', r != null ? base + r : (mesmoMes ? base : null), 'moeda');
+      }
+      if (p) h = calc('Recebido / previsto', B.pct(r != null ? r / p : null));
+    }
+    if (setorAtual === 'geral' && data) {
+      const g = B.indicadoresGeral(data, lerNum('total_pedidos_ano'), lerNum('meta_global'), feriados());
+      h = calc('Atingido da meta', B.pct(g.pct)) + calc('Falta vender', B.moeda(g.falta)) +
+          calc('Dias úteis trabalhados', B.inteiro(g.trabalhados)) + calc('Dias úteis faltantes', B.inteiro(g.faltantes)) +
+          calc('Meta diária', B.moeda(g.metaDiaria));
+    }
+    if (setorAtual === 'privado') { const p = lerNum('propostas'), v = lerNum('vendas'); if (p) h = calc('Conversão no dia', B.pct(v != null ? v / p : null)); }
+    $('calculos').innerHTML = h;
+  }
+
+  function ajudaData() {
+    const data = dataSel(), a = $('ajudaData');
+    if (!data) { a.textContent = ''; return; }
+    const dias = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+    let t = dias[data.getUTCDay()];
+    if (!B.ehUtil(data, feriados())) t += ' · não é dia útil';
+    if (data > B.hojeUTC()) t += ' · data futura';
+    a.textContent = t;
+  }
+
+  function renderUltimos() {
+    const s = B.setor(setorAtual), el = $('ultimos');
+    $('tituloUltimos').textContent = 'Últimos registros · ' + s.nome;
+    if (!dados) return;
+    const l = lista(setorAtual).slice(-8).reverse();
+    if (!l.length) { el.innerHTML = '<div class="vazio">Nenhum registro deste setor ainda.</div>'; return; }
+    const principal = s.itens ? { l: 'Vendas do dia', f: r => B.moeda(B.totalVendas(r)) }
+      : (c => ({ l: c.l.replace(/ \((R\$|nº)\)/, ''), f: r => (c.t === 'moeda' ? B.moeda : B.inteiro)(r[c.k]) }))(s.campos.find(c => c.t !== 'texto' && !c.calc));
+    el.innerHTML = '<table class="tab"><thead><tr><th>Data</th><th class="n">' + principal.l + '</th><th>Responsável</th></tr></thead><tbody>' +
+      l.map(r => '<tr><td><a href="#" data-d="' + B.iso(r.data_ref) + '">' + B.br(r.data_ref) + '</a></td><td class="n">' + principal.f(r) + '</td><td>' + esc(r.responsavel) + '</td></tr>').join('') + '</tbody></table>' +
+      '<div style="font-size:12px;color:var(--secundaria);margin-top:8px">Clique na data para abrir e corrigir o registro.</div>';
+    el.querySelectorAll('a[data-d]').forEach(a => a.onclick = ev => { ev.preventDefault(); $('inData').value = a.dataset.d; ajudaData(); carregarValores(); esconderMsg(); });
+  }
+
+  function renderTudo() { renderSetores(); ajudaData(); carregarValores(); renderUltimos(); esconderMsg(); }
+
+  // ---------- validação e gravação ----------
+  function validar() {
+    const s = B.setor(setorAtual), erros = [];
+    document.querySelectorAll('.invalido').forEach(e => e.classList.remove('invalido'));
+    const marca = (el, msg) => { if (el) el.classList.add('invalido'); erros.push(msg); };
+    if (!dataSel()) marca($('inData'), 'Informe a data de referência.');
+    if (!$('inResp').value.trim()) marca($('inResp'), 'Informe o responsável.');
+    const rec = {};
+    s.campos.forEach(c => {
+      const el = campo(c.k);
+      if (c.t === 'texto') { rec[c.k] = el.value.trim(); return; }
+      const raw = el.value.trim(), n = B.parseNum(raw);
+      if (raw && n == null) return marca(el, c.l + ': valor inválido.');
+      if (c.req && !c.calc && n == null) return marca(el, c.l + ': obrigatório.');
+      if (n != null && n < 0 && !c.calc) return marca(el, c.l + ': não pode ser negativo.');
+      if (c.t === 'int' && n != null && !Number.isInteger(n)) return marca(el, c.l + ': use número inteiro.');
+      rec[c.k] = n;
+    });
+    if (s.itens) {
+      const itens = lerItens();
+      itens.forEach((it, i) => {
+        if (!it.venda) marca(it._tr.querySelector('[data-i=venda]'), 'Venda ' + (i + 1) + ': descreva a venda.');
+        if (it.valor == null || it.valor < 0) marca(it._tr.querySelector('[data-i=valor]'), 'Venda ' + (i + 1) + ': informe o valor.');
+      });
+      rec.itens = itens.map(({ _tr, ...x }) => x);
+    }
+    return { erros, rec };
+  }
+  function erroGravacao(e) {
+    if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+      stConexao('pend', 'Clique em Reconectar'); $('btReconectar').classList.remove('oculto');
+      return '<b>O acesso à pasta expirou.</b> Clique em <b>Reconectar</b> (no topo) e salve novamente. O que você digitou continua no formulário.';
+    }
+    if (e.name === 'NotFoundError') return '<b>A pasta de dados não foi encontrada.</b> Ela pode ter sido movida ou a sincronização do OneDrive/Teams está desligada. Use <b>Selecionar pasta de dados</b> para escolher de novo.';
+    return '<b>Erro ao salvar:</b> ' + esc(e.message || e) + '<br>O que você digitou continua no formulário; tente novamente.';
+  }
+
+  $('btSalvar').onclick = async () => {
+    const { erros, rec } = validar();
+    if (erros.length) { mostrar('erro', '<b>Corrija antes de salvar:</b><br>' + erros.map(esc).join('<br>')); return; }
+    const s = B.setor(setorAtual), data = dataSel(), resp = $('inResp').value.trim(), arq = B.arquivoSetor(s.id);
+    if (data > B.hojeUTC() && !confirm('A data ' + B.br(data) + ' está no futuro. Salvar mesmo assim?')) return;
+    const btn = $('btSalvar'); btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+      // relê o arquivo do setor na hora de gravar, para não perder o que outra pessoa salvou
+      const atual = B.validarArquivo((await C.lerJSON(arq, B.arquivoVazio(s.id))).dados, s.id);
+      const ex = B.registroDoDia(B.registros(atual), data), tinha = B.registroDoDia(lista(s.id), data);
+      if (ex && !tinha && !confirm((ex.responsavel || 'Outra pessoa') + ' acabou de salvar ' + s.nome + ' para ' + B.br(data) + '. Substituir pelo seu registro?')) return;
+      B.gravarRegistro(atual, data, rec, resp);
+      await C.gravarJSON(arq, atual);
+      localStorage.setItem('vmim-resp-' + s.id, resp);
+      await carregar(); renderUltimos(); carregarValores();
+      mostrar('ok', '<b>Registro salvo.</b> ' + s.nome + ' · ' + B.br(data) + ' gravado em ' + esc(C.nome + '/' + arq) + '.');
+    } catch (e) { mostrar('erro', erroGravacao(e)); }
+    finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+  };
+
+  $('btExcluir').onclick = async () => {
+    const s = B.setor(setorAtual), data = dataSel(), arq = B.arquivoSetor(s.id);
+    if (!confirm('Excluir o registro de ' + s.nome + ' do dia ' + B.br(data) + '? Esta ação não pode ser desfeita.')) return;
+    try {
+      const atual = B.validarArquivo((await C.lerJSON(arq, B.arquivoVazio(s.id))).dados, s.id);
+      if (B.excluirRegistro(atual, data)) await C.gravarJSON(arq, atual);
+      await carregar(); renderUltimos(); carregarValores();
+      mostrar('ok', 'Registro de ' + s.nome + ' do dia ' + B.br(data) + ' excluído.');
+    } catch (e) { mostrar('erro', erroGravacao(e)); }
+  };
+  $('btLimpar').onclick = () => { carregarValores(); esconderMsg(); };
+  $('inData').addEventListener('change', () => { ajudaData(); carregarValores(); esconderMsg(); });
+
+  // ---------- início ----------
+  (async function iniciar() {
+    $('inData').value = B.iso(B.diaUtilAnterior(B.hojeUTC(), feriados()));
+    if (!C.suportado) { $('avisoCompat').classList.remove('oculto'); $('btEscolher').classList.add('oculto'); }
+    renderTudo();
+    const st = await C.restaurar(MODO);
+    if (st === 'ok') await conectarFluxo(async () => {});
+    else if (st === 'permissao') { stConexao('pend', 'Clique em Reconectar'); $('nomePasta').textContent = C.nome; $('btReconectar').classList.remove('oculto'); }
+    if (dados) { $('inData').value = B.iso(B.diaUtilAnterior(B.hojeUTC(), dados.feriados)); ajudaData(); carregarValores(); }
+  })();
+})();
+</script>
+</body>
+</html>
