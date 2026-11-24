@@ -2,104 +2,129 @@
 
 Formulário diário (D-1) e dashboard para a reunião de stand up do Comercial.
 
-- **`index.html`**: o formulário. Cada responsável preenche o seu setor (Jurídico, Público, Captação, Privado, Especialista ou Geral).
-- **`dashboard.html`**: o painel da reunião. Mostra quem já preencheu, os indicadores de meta, os gráficos do mês e as observações. Tem um botão para **exportar tudo para Excel**.
-
-O site fica publicado no GitHub Pages. **Os dados não ficam no GitHub.** Eles ficam numa pasta compartilhada da equipe (Teams/OneDrive), com um arquivo JSON por setor.
+- **`index.html`**: o formulário. Cada pessoa entra com o seu e-mail e preenche os setores liberados para ela.
+- **`dashboard.html`**: o painel da reunião. Mostra o preenchimento do dia, os indicadores de meta, os gráficos do mês e as observações, e se atualiza sozinho quando alguém salva. Também tem o botão **Exportar para Excel**.
+- **Base de dados: Supabase** (PostgreSQL). Só quem tem login vê os dados, e cada pessoa só grava nos setores liberados para ela.
 
 ```
-dados/                 <- pasta compartilhada no Teams (NÃO vai para o GitHub)
-├── config.json        feriados usados no cálculo de dias úteis
-├── juridico.json
-├── publico.json
-├── captacao.json
-├── privado.json
-├── especialista.json
-└── geral.json
+├── index.html / dashboard.html
+├── assets/js/config.js        <- endereço do projeto + chave PÚBLICA do Supabase (você edita)
+├── assets/js/dados.js         acesso ao Supabase
+├── assets/js/acesso.js        login, sair, alterar senha
+├── assets/js/lib.js           campos de cada setor e cálculos
+└── supabase/
+    ├── 01_criar_base.sql      cria tabelas, regras de acesso, feriados e visões
+    ├── 02_importar_json.sql   importa os .json da versão anterior (pasta "dados" do Teams)
+    └── 03_usuarios.sql        libera e-mails e setores
 ```
-
-Cada pessoa grava só o arquivo do seu setor. Assim, duas pessoas salvando ao mesmo tempo não apagam o registro uma da outra.
 
 ---
 
-## 1. Publicar no GitHub Pages (uma vez)
+## Passo a passo da implantação
 
-1. No GitHub, crie um repositório. Exemplo: `standup-comercial`.
-2. Envie todo o conteúdo desta pasta para o repositório: `index.html`, `dashboard.html`, `assets/`, `.nojekyll`, `.gitignore` e este `README.md`.
-   - Pelo navegador: no repositório, clique em **Add file > Upload files**, arraste os arquivos e pastas e clique em **Commit changes**.
-3. Vá em **Settings > Pages**.
-4. Em **Source**, escolha **Deploy from a branch**. Em **Branch**, escolha **main** e a pasta **/ (root)**. Clique em **Save**.
-5. Depois de 1 ou 2 minutos, o endereço aparece no topo da página. Exemplo: `https://<usuario-ou-organizacao>.github.io/standup-comercial/`.
-   - Formulário: `.../standup-comercial/`
-   - Dashboard: `.../standup-comercial/dashboard.html`
+### 1. Criar o projeto no Supabase
+1. Acesse **supabase.com** e entre na sua conta. Clique em **New project**.
+2. Dê um nome, por exemplo `standup-comercial`, e escolha a região **South America (São Paulo)**.
+3. Em **Database Password**, gere uma senha e guarde-a no cofre de senhas da empresa. Não envie essa senha por chat nem por e-mail. O site não usa essa senha.
+4. Clique em **Create new project** e aguarde 1 a 2 minutos.
 
-> **Visibilidade:** o endereço do GitHub Pages pode ser acessado por qualquer pessoa que tenha o link, mesmo com o repositório privado. A exceção é o plano GitHub Enterprise com Pages privado. O site só contém o código, e os dados continuam na pasta da equipe. Mesmo assim, não divulgue o link fora da empresa.
+### 2. Criar a base (SQL Editor)
+1. No menu lateral, clique em **SQL Editor** e depois em **New query**.
+2. Abra o arquivo `supabase/01_criar_base.sql`, copie todo o conteúdo e cole no editor.
+3. Clique em **Run**. O resultado esperado é *Success. No rows returned*.
+4. Confira em **Table Editor**: devem aparecer as tabelas `registros`, `usuarios` e `feriados`.
 
-## 2. Criar a pasta de dados no Teams (uma vez)
+### 3. Importar os dados que vocês já têm (.json)
+Os arquivos estão na pasta `dados` do Teams: `juridico.json`, `publico.json`, `captacao.json`, `privado.json`, `especialista.json`, `geral.json` e `config.json`.
 
-1. No Teams, abra o time ou canal do Comercial e clique em **Arquivos**.
-2. Clique em **+ Novo > Pasta** e crie, por exemplo, `StandUp Comercial`. Dentro dela, crie a pasta **`dados`**, que pode ficar vazia.
-3. Todos os membros do time já podem editar.
+1. No SQL Editor, clique em **New query** e cole o conteúdo de `supabase/02_importar_json.sql`.
+2. Para **cada arquivo**:
+   1. Abra o arquivo no **Bloco de Notas**, aperte **Ctrl+A** e depois **Ctrl+C**.
+   2. No bloco do setor correspondente, apague a palavra `COLE_AQUI` e cole com **Ctrl+V**. As linhas `$json$` acima e abaixo precisam continuar lá.
+   3. Selecione com o mouse **só aquele bloco**, do `select` até o `;`, e clique em **Run**. O resultado mostra quantos registros entraram.
+3. O `config.json` só precisa ser importado se vocês incluíram feriados extras. Os feriados nacionais já foram criados no passo 2.
+4. No fim, rode a consulta de conferência que está no final do arquivo. Ela mostra quantos registros há por setor e o período de cada um.
 
-## 3. O que cada pessoa faz (uma vez por computador)
+> Pode repetir a importação sem medo: um registro da mesma data é atualizado, nunca duplicado.
 
-1. No Teams, abra a pasta `StandUp Comercial` e clique em **Adicionar atalho ao OneDrive** ou em **Sincronizar**. A pasta passa a aparecer no Explorador de Arquivos.
-2. Abra o link do formulário no **Microsoft Edge** ou no **Google Chrome** (no computador). Dica: salve nos favoritos ou fixe como aba no canal do Teams.
-3. Clique em **Selecionar pasta de dados**, escolha a pasta **`dados`** (dentro de `StandUp Comercial`, no OneDrive) e permita a edição.
-   - Se o navegador mostrar **"Permitir em todas as visitas"**, marque essa opção. Assim o formulário já abre conectado nas próximas vezes.
-   - Se não marcar, nas próximas vezes basta clicar em **Reconectar** e confirmar.
-4. A primeira pessoa a conectar uma pasta vazia vê a pergunta "Iniciar a base de dados do Stand Up nela?". Responda **OK** e o `config.json` é criado.
+### 4. Configurar o login
+1. Vá em **Authentication > Sign In / Providers > Email**. Deixe **Email** ativado e **desative "Allow new users to sign up"**. Assim, só o administrador cria contas.
+2. Ainda em **Authentication**, abra **URL Configuration**. Em **Site URL**, informe `https://mgabriiell.github.io/Standup/` e clique em **Save**.
+3. Para cada pessoa, vá em **Authentication > Users > Add user > Create new user**:
+   - informe o e-mail da empresa e uma senha provisória;
+   - marque **Auto Confirm User** e clique em **Create user**.
+   - Entregue a senha provisória pessoalmente ou por um canal seguro. Depois do primeiro acesso, a pessoa troca a senha pelo botão **Alterar senha**, no topo do site.
 
-## 4. Uso diário
+### 5. Liberar os setores de cada pessoa
+1. No SQL Editor, abra `supabase/03_usuarios.sql`.
+2. Troque os e-mails de exemplo pelos reais, em minúsculas. Em `setores`, use:
+   - `'{*}'` para administrador, com acesso a todos os setores;
+   - `'{juridico}'`, `'{privado,publico}'` etc. para setores específicos;
+   - `'{}'` para quem só vê o dashboard.
+3. Clique em **Run**.
 
-- **Formulário:** escolha o setor, confira a data (o padrão é o dia útil anterior), preencha e clique em **Salvar**.
-  - Se o setor já tiver registro na data, os valores são carregados e salvar substitui o registro.
-  - **Excluir registro desta data** remove um lançamento feito por engano.
-  - Clique numa data em "Últimos registros" para abrir e corrigir aquele dia.
-- **Dashboard:** abra na reunião. Ele se atualiza a cada 2 minutos, ou ao clicar em **Atualizar dados**. Para ver outro dia, use as setas.
-- **Excel:** no dashboard, clique em **Exportar para Excel**. A planilha baixada tem um resumo, uma aba por setor, as vendas do Público e os feriados.
+Quem tem login mas não está nessa lista vê a mensagem "Acesso não liberado".
+
+### 6. Ligar o site ao Supabase (`config.js`)
+1. No Supabase, clique no botão **Connect**, no topo do projeto. Ali aparecem a **Project URL** (ex.: `https://abcdefghijkl.supabase.co`) e a **Publishable key** (começa com `sb_publishable_`).
+   - As duas também ficam em **Project Settings > Data API** (URL) e **Project Settings > API Keys** (chave).
+   - Use a **Publishable key**. A antiga "anon" ainda funciona, mas o Supabase vai desativá-la até o fim de 2026.
+3. Abra `assets/js/config.js` no Bloco de Notas, troque `https://SEU-PROJETO.supabase.co` e `COLE_AQUI_A_CHAVE_PUBLICA` pelos seus valores e salve.
+
+> **Nunca** use a **Secret key** ou a **service_role** no site, porque elas dão acesso total à base. A chave **pública** pode ficar no GitHub: a segurança vem do login e das regras de acesso criadas no passo 2.
+> Não envie chaves nem senhas por chat ou por e-mail.
+
+### 7. Publicar no GitHub
+1. No repositório, clique em **Add file > Upload files**.
+2. Arraste **todo o conteúdo** desta pasta: `index.html`, `dashboard.html`, `README.md` e as pastas `assets` e `supabase`. Depois clique em **Commit changes**.
+3. Apague o arquivo antigo `assets/js/conexao.js`: abra o arquivo, clique nos três pontinhos (…), escolha **Delete file** e clique em **Commit changes**.
+4. Espere 1 a 2 minutos e abra `https://mgabriiell.github.io/Standup/`.
+
+### 8. Testar
+1. Entre com o seu e-mail. Devem aparecer as abas dos seus setores.
+2. Salve um registro de teste e abra o dashboard: o registro aparece na hora.
+3. Exclua o registro de teste pelo botão **Excluir registro desta data**.
+
+Depois de conferir os dados importados, a pasta `dados` do Teams não é mais usada e pode ser arquivada.
+
+---
+
+## Uso diário
+
+- **Formulário:** entre, escolha o setor, confira a data (o padrão é o dia útil anterior), preencha e clique em **Salvar**. O login fica guardado no navegador.
+- **Dashboard:** se atualiza sozinho quando alguém salva. Use as setas para navegar entre os dias e **Exportar para Excel** para baixar a planilha.
+
+## Administração
+
+| Tarefa | Onde |
+|---|---|
+| Nova pessoa | Authentication > Users > Add user e depois `03_usuarios.sql` |
+| Trocar setores de alguém | `03_usuarios.sql` (rodar de novo) ou Table Editor > usuarios |
+| Bloquear alguém | `update public.usuarios set ativo = false where email = '...';` |
+| Senha esquecida | Authentication > Users > clicar na pessoa > definir nova senha provisória |
+| Feriados (municipais, emendas) | Table Editor > feriados > Insert row |
+| Consultar ou exportar dados | Table Editor, visões `v_juridico`, `v_privado`, `v_geral`, `v_especialista`, `v_captacao` e `v_itens` (vendas e aluguéis, uma linha por item) |
+
+**Plano gratuito do Supabase:** projetos sem nenhum acesso por 7 dias são pausados. O uso diário evita isso. Se acontecer, entre no painel do Supabase e clique em **Restore project**.
 
 ## Regras de cálculo
 
 | Indicador | Cálculo |
 |---|---|
-| Dias úteis faltantes | Dias úteis do dia seguinte à data de referência até 31/12, sem os feriados do `config.json` |
+| Dias úteis faltantes | Dias úteis do dia seguinte à data de referência até 31/12, sem os feriados da tabela `feriados` |
 | Dias úteis trabalhados | Dias úteis de 01/01 até a data de referência |
 | Meta diária | (Meta global - Total de pedidos no ano) / Dias úteis faltantes |
 | Propostas do mês · Privado | Soma de "Propostas geradas" do Privado no mês |
-| Propostas do mês · Público | Soma de "Propostas público do dia" informadas no Geral, no mês |
+| Propostas do mês · Público | Soma de "Propostas público do dia" do Geral no mês |
 | Propostas do mês · Total | Privado + Público |
 | Vendas do Privado | Quantidade e valor vêm da lista "Vendas do dia" (cliente, valor, equipamento) |
 | Recebido no mês (Jurídico) | Sugerido como o acumulado anterior do mês mais o recebido do dia. Pode ser editado |
 
-## Atualizar o site
-
-Para publicar uma nova versão, envie os arquivos alterados para o repositório (Add file > Upload files > Commit). Em 1 a 2 minutos o site é atualizado. A equipe não precisa fazer nada, só recarregar a página. A conexão com a pasta de dados continua valendo.
-
-## Manutenção
-
-- **Feriados:** edite `dados/config.json` no Bloco de Notas e inclua os feriados municipais e estaduais e as emendas da empresa, no formato:
-  ```json
-  { "data": "2026-12-24", "descricao": "Véspera de Natal (emenda)" }
-  ```
-  Os feriados de 2026 e 2027 já vêm cadastrados. Inclua os de 2028 até o fim de 2027.
-- **Não edite os arquivos dos setores à mão.** Use o formulário para corrigir ou excluir registros.
-- **Backup:** o OneDrive/Teams guarda o histórico de versões de cada arquivo (botão direito no arquivo > **Histórico de versões**).
-- **Conflitos do OneDrive:** se aparecer um arquivo com o nome do computador (ex.: `juridico-NOTEBOOK01.json`), houve conflito de sincronização. Confira os dados no formulário e apague a cópia.
-
-## Problemas comuns
-
-| Situação | O que fazer |
-|---|---|
-| "Navegador não compatível" | Use Edge ou Chrome no computador. Celular e Firefox não gravam na pasta |
-| "O acesso à pasta expirou" | Clique em **Reconectar** e salve de novo. O que foi digitado não se perde |
-| "A pasta de dados não foi encontrada" | A pasta foi movida ou o OneDrive parou de sincronizar. Clique em **Selecionar pasta de dados** de novo |
-| O dashboard não mostra o que alguém salvou | Aguarde a sincronização do OneDrive (ícone verde) e clique em **Atualizar dados** |
-
 ## Componentes de terceiros
 
-- [Chart.js](https://www.chartjs.org/) 4.6.1, licença MIT (`assets/vendor/LICENSE-chartjs.md`)
-- [ExcelJS](https://github.com/exceljs/exceljs) 4.4.0, licença MIT (`assets/vendor/LICENSE-exceljs.txt`)
+- [Chart.js](https://www.chartjs.org/) 4.6.1, licença MIT
+- [ExcelJS](https://github.com/exceljs/exceljs) 4.4.0, licença MIT
+- [supabase-js](https://github.com/supabase/supabase-js) 2.119.2, licença MIT
 
 ---
 

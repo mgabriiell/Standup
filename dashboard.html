@@ -13,7 +13,7 @@ Solicitante: rosameire.henriques@vmimedica.com.br
 <link rel="icon" href="assets/img/vmim-dourado.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/estilo.css?v=2">
+<link rel="stylesheet" href="assets/css/estilo.css?v=3">
 <style>
 main { max-width: 1440px; }
 .filtros { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -62,20 +62,12 @@ main { max-width: 1440px; }
     <h1>Acompanhamento Comercial · Stand Up</h1>
     <div class="sub"><span id="subtitulo">Dashboard diário (D-1)</span> · <a href="index.html">abrir o formulário</a></div>
   </div>
-  <div class="conexao">
-    <span id="stConexao" class="pill off">Pasta de dados não conectada</span>
-    <span id="nomePasta"></span>
-    <button class="btn sec peq oculto" id="btReconectar" type="button">Reconectar</button>
-    <button class="btn peq" id="btEscolher" type="button">Selecionar pasta de dados</button>
-  </div>
+  <div class="conexao" id="areaUsuario"></div>
 </header>
 
 <main>
   <div id="msg" class="aviso oculto"></div>
-  <section id="telaInicio" class="cartao inicio">
-    <h2>Conecte a pasta de dados</h2>
-    <p id="txtInicio">Clique em "Selecionar pasta de dados" e escolha a pasta <b>dados</b> do Stand Up (a mesma usada no formulário). Na próxima vez o dashboard abre direto.</p>
-  </section>
+  <section id="telaLogin" class="cartao login oculto"></section>
 
   <div id="conteudo" class="oculto">
     <div class="filtros">
@@ -84,7 +76,7 @@ main { max-width: 1440px; }
       <button class="btn sec peq" id="btProximo" type="button">Próximo →</button>
       <button class="btn peq" id="btAtualizar" type="button">Atualizar dados</button>
       <button class="btn sec peq" id="btExportar" type="button">Exportar para Excel</button>
-      <label class="chk"><input type="checkbox" id="chkAuto" checked> Atualizar a cada 2 min</label>
+      <label class="chk"><input type="checkbox" id="chkAuto" checked> Atualizar automaticamente</label>
       <span class="info" id="infoLeitura"></span>
     </div>
 
@@ -140,14 +132,16 @@ main { max-width: 1440px; }
 <footer class="rod">VMI Médica · Acompanhamento Comercial</footer>
 
 <script src="assets/vendor/chart.umd.min.js?v=2"></script>
-<script src="assets/js/lib.js?v=2"></script>
-<script src="assets/js/conexao.js?v=2"></script>
+<script src="assets/vendor/supabase.js?v=3"></script>
+<script src="assets/js/config.js?v=3"></script>
+<script src="assets/js/lib.js?v=3"></script>
+<script src="assets/js/dados.js?v=3"></script>
+<script src="assets/js/acesso.js?v=3"></script>
 <script>
 (function () {
   'use strict';
-  const B = window.Base, C = window.Conexao;
+  const B = window.Base, D = window.Dados;
   const $ = id => document.getElementById(id);
-  const MODO = 'read';
   const COR1 = '#A8833A', COR2 = '#3D7CC0', GRADE = '#EEE7D6', TXT2 = '#555555';
   let dados = null, timer = null;
   const graficos = {};
@@ -163,7 +157,6 @@ main { max-width: 1440px; }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   function mostrar(tipo, html) { const m = $('msg'); m.className = 'aviso ' + tipo; m.innerHTML = html; }
-  function stConexao(tipo, texto) { const e = $('stConexao'); e.className = 'pill ' + tipo; e.textContent = texto; }
   function tile(r, v, s, cls, clsV) { return '<div class="tile' + (cls ? ' ' + cls : '') + '"><div class="r">' + r + '</div><div class="v' + (clsV ? ' ' + clsV : '') + '">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + '</div>'; }
   function dataRef() { return $('inData').value ? B.deIso($('inData').value) : B.hojeUTC(); }
   function doMes(lista, ref) {
@@ -316,7 +309,7 @@ main { max-width: 1440px; }
     const btn = $('btExportar'); btn.disabled = true; btn.textContent = 'Gerando...';
     try {
       await carregarScript('assets/vendor/exceljs.min.js?v=2');
-      const novo = await C.lerTudo(B); dados = novo; render();
+      const novo = await D.lerTudo(); dados = novo; render();
       const wb = new ExcelJS.Workbook(); wb.creator = 'VMI Médica - Comercial';
       const GRAF = 'FF1C1C1C', SUAVE = 'FFF7F3EA', FILETE = 'FFC79F3E', SEC = 'FF555555', ACENTO = 'FF8A6A1F';
       const FMT = { moeda: '"R$" #,##0.00', int: '0', data: 'dd/mm/yyyy', texto: '@' };
@@ -385,25 +378,26 @@ main { max-width: 1440px; }
   // ---------- dados ----------
   async function carregar(silencioso) {
     try {
-      const novo = await C.lerTudo(B);
+      const novo = await D.lerTudo();
       const primeiro = !dados; dados = novo;
-      stConexao('ok', 'Pasta conectada'); $('nomePasta').textContent = C.nome;
-      $('btReconectar').classList.add('oculto'); $('telaInicio').classList.add('oculto'); $('conteudo').classList.remove('oculto'); $('msg').className = 'aviso oculto';
+      $('conteudo').classList.remove('oculto'); $('msg').className = 'aviso oculto';
       $('infoLeitura').textContent = 'Lido às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) +
         (dados.modificado ? ' · última gravação ' + new Date(dados.modificado).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '');
       if (primeiro) $('inData').value = B.iso(B.diaUtilAnterior(B.hojeUTC(), dados.feriados));
-      render(); agendar();
+      render();
     } catch (e) {
-      if (e.name === 'AbortError') return;
-      if (e.name === 'NotAllowedError' || e.name === 'SecurityError') { stConexao('pend', 'Clique em Reconectar'); $('btReconectar').classList.remove('oculto'); clearInterval(timer); }
       if (!silencioso) mostrar('erro', '<b>Não foi possível ler os dados.</b> ' + esc(e.message || e));
     }
   }
-  function agendar() { clearInterval(timer); if ($('chkAuto').checked) timer = setInterval(() => carregar(true), 120000); }
-  async function conectar(fn) { try { await fn(); await carregar(); } catch (e) { if (e.name !== 'AbortError') mostrar('erro', esc(e.message || e)); } }
+  /* Tempo real: atualiza assim que alguém salva no formulário; e a cada 2 min como garantia. */
+  let pendente = null, canal = null;
+  function agendar() {
+    clearInterval(timer);
+    if (!$('chkAuto').checked) { if (canal) { canal.unsubscribe(); canal = null; } return; }
+    timer = setInterval(() => carregar(true), 120000);
+    if (!canal) canal = D.aoMudarRegistros(() => { clearTimeout(pendente); pendente = setTimeout(() => carregar(true), 1500); });
+  }
 
-  $('btEscolher').onclick = () => conectar(async () => { await C.escolher(MODO); await C.prepararPasta(B, false); });
-  $('btReconectar').onclick = () => conectar(async () => { if (!(await C.pedirPermissao(MODO))) throw new Error('Permissão negada para ler a pasta de dados.'); });
   $('btAtualizar').onclick = () => carregar();
   $('btExportar').onclick = exportar;
   $('chkAuto').onchange = agendar;
@@ -416,12 +410,7 @@ main { max-width: 1440px; }
   $('btAnterior').onclick = () => mover(-1);
   $('btProximo').onclick = () => mover(1);
 
-  (async function iniciar() {
-    if (!C.suportado) { $('btEscolher').classList.add('oculto'); $('txtInicio').innerHTML = '<b>Navegador não compatível.</b> Abra este endereço no Microsoft Edge ou no Google Chrome (computador).'; return; }
-    const st = await C.restaurar(MODO);
-    if (st === 'ok') await carregar();
-    else if (st === 'permissao') { stConexao('pend', 'Clique em Reconectar'); $('nomePasta').textContent = C.nome; $('btReconectar').classList.remove('oculto'); }
-  })();
+  Acesso.iniciar({ aoEntrar: async () => { await carregar(); agendar(); } });
 })();
 </script>
 </body>

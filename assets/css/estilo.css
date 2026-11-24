@@ -42,3 +42,17 @@ table.tab td { border-bottom: 1px solid var(--linha); padding: 6px 8px; vertical
 table.tab td.n, table.tab th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 footer.rod { text-align: center; color: var(--secundaria); font-size: 11px; padding: 10px 0 24px; }
 a { color: var(--acento); }
+/* Login e área do usuário */
+.login { max-width: 420px; margin: 40px auto; }
+.login form { display: grid; gap: 6px; }
+.login label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+.login input { font-family: var(--fonte); font-size: 15px; padding: 9px 10px; border: 1px solid #CFC5AE; border-radius: 6px; }
+.login .btn { margin-top: 12px; }
+.sub-login { color: var(--secundaria); font-size: 13px; }
+.usuario { font-weight: 600; color: var(--titulo); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+dialog.dlg { border: 1px solid var(--linha); border-radius: 10px; padding: 20px 22px; width: min(400px, 92vw); font-family: var(--fonte); }
+dialog.dlg::backdrop { background: rgba(28,28,28,.35); }
+dialog.dlg form { display: grid; gap: 6px; }
+dialog.dlg label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+dialog.dlg input { font-family: var(--fonte); font-size: 15px; padding: 8px 10px; border: 1px solid #CFC5AE; border-radius: 6px; }
+.acoes-dlg { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
