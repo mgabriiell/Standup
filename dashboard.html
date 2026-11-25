@@ -13,7 +13,7 @@ Solicitante: rosameire.henriques@vmimedica.com.br
 <link rel="icon" href="assets/img/vmim-dourado.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/estilo.css?v=3">
+<link rel="stylesheet" href="assets/css/estilo.css?v=4">
 <style>
 main { max-width: 1440px; }
 .filtros { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -21,8 +21,13 @@ main { max-width: 1440px; }
 .filtros input { font-family: var(--fonte); font-size: 14px; padding: 6px 8px; border: 1px solid #CFC5AE; border-radius: 6px; }
 .filtros .chk { font-size: 13px; color: var(--secundaria); display: flex; align-items: center; gap: 6px; }
 .filtros .info { font-size: 12px; color: var(--secundaria); margin-left: auto; }
-.status { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
-@media (max-width: 900px) { .status { grid-template-columns: repeat(3, 1fr); } }
+.status { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+@media (max-width: 1100px) { .status { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 700px) { .status { grid-template-columns: repeat(2, 1fr); } }
+table.gtab td.na { text-align: center; color: #B5AC98; background: #F4F1EA; }
+table.gtab tfoot td { background: var(--fundo-suave); border-top: 2px solid var(--filete); }
+.gjb { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: 18px; align-items: start; }
+@media (max-width: 1050px) { .gjb { grid-template-columns: 1fr; } }
 .st { background: #fff; border: 1px solid var(--linha); border-radius: 8px; padding: 10px 12px; }
 .st .n { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .st .q { font-size: 12px; color: var(--secundaria); margin-top: 4px; min-height: 16px; }
@@ -102,6 +107,15 @@ main { max-width: 1440px; }
         <div class="rolagem" id="tabPub"></div>
       </section>
 
+      <section class="cartao total">
+        <div class="cab"><h2>Jurídico Brisa · atividades</h2><span class="dt" id="dtJB"></span></div>
+        <div class="tiles" id="tJB"></div>
+        <div class="gjb">
+          <div><h3 style="margin-top:0">Comercial</h3><div id="tabJBcom"></div></div>
+          <div><h3 style="margin-top:0">Demais áreas · total do mês</h3><div class="rolagem" id="tabJB"></div></div>
+        </div>
+      </section>
+
       <section class="cartao">
         <div class="cab"><h2>Privado</h2><span class="dt" id="dtPri"></span></div>
         <div class="tiles" id="tPri"></div>
@@ -132,11 +146,11 @@ main { max-width: 1440px; }
 <footer class="rod">VMI Médica · Acompanhamento Comercial</footer>
 
 <script src="assets/vendor/chart.umd.min.js?v=2"></script>
-<script src="assets/vendor/supabase.js?v=3"></script>
-<script src="assets/js/config.js?v=3"></script>
-<script src="assets/js/lib.js?v=3"></script>
-<script src="assets/js/dados.js?v=3"></script>
-<script src="assets/js/acesso.js?v=3"></script>
+<script src="assets/vendor/supabase.js?v=4"></script>
+<script src="assets/js/config.js?v=4"></script>
+<script src="assets/js/lib.js?v=4"></script>
+<script src="assets/js/dados.js?v=4"></script>
+<script src="assets/js/acesso.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -257,6 +271,36 @@ main { max-width: 1440px; }
       vm.slice().reverse().map(i => '<tr><td>' + rotulo(i.data_ref) + '</td><td>' + esc(i.venda) + '</td><td class="n">' + B.moeda(i.valor) + '</td><td>' + esc(i.equipamentos) + '</td></tr>').join('') + '</tbody></table>'
       : '<div class="vazio">Nenhuma venda pública no mês até a data de referência.</div>';
 
+    // Jurídico Brisa
+    (function () {
+      const sj = B.setor('juridico_brisa'), g = sj.grade, jd = doDia(S.juridico_brisa, ref), jm = doMes(S.juridico_brisa, ref);
+      dtSetor('dtJB', jd, ref);
+      const comDia = jd ? g.comercial.itens.reduce((a, i) => a + (jd['com_' + i.k] || 0), 0) : null;
+      const comMes = g.comercial.itens.reduce((a, i) => a + soma(jm, 'com_' + i.k), 0);
+      const totMes = jm.reduce((a, r) => a + B.totalAtividades(sj, r), 0);
+      const areaDia = p => jd ? g.linhas.filter(li => li.em.includes(p)).reduce((a, li) => a + (jd[p + '_' + li.k] || 0), 0) : null;
+      $('tJB').innerHTML =
+        tile('Atividades no dia', B.inteiro(jd ? B.totalAtividades(sj, jd) : null)) +
+        tile('Atividades no mês', B.inteiro(totMes), '', 'destaque') +
+        tile('Comercial no dia', B.inteiro(comDia), 'no mês: ' + B.inteiro(comMes)) +
+        g.colunas.map(c => tile(c.l + ' no dia', B.inteiro(areaDia(c.p)))).join('');
+      $('tabJBcom').innerHTML = '<table class="tab"><thead><tr><th>Atividade</th><th class="n">No dia</th><th class="n">No mês</th></tr></thead><tbody>' +
+        g.comercial.itens.map(i => '<tr><td>' + i.l + '</td><td class="n">' + B.inteiro(jd ? (jd['com_' + i.k] || 0) : null) + '</td><td class="n"><b>' + B.inteiro(soma(jm, 'com_' + i.k)) + '</b></td></tr>').join('') +
+        '</tbody><tfoot><tr><td><b>Total</b></td><td class="n"><b>' + B.inteiro(comDia) + '</b></td><td class="n"><b>' + B.inteiro(comMes) + '</b></td></tr></tfoot></table>';
+      let totCols = {}, geral = 0;
+      $('tabJB').innerHTML = '<table class="tab gtab"><thead><tr><th>Atividade</th>' + g.colunas.map(c => '<th class="n">' + c.l + '</th>').join('') + '<th class="n">Total</th></tr></thead><tbody>' +
+        g.linhas.map(li => {
+          let tl = 0;
+          const tds = g.colunas.map(c => {
+            if (!li.em.includes(c.p)) return '<td class="na">—</td>';
+            const v = soma(jm, c.p + '_' + li.k); tl += v; totCols[c.p] = (totCols[c.p] || 0) + v; return '<td class="n">' + B.inteiro(v) + '</td>';
+          }).join('');
+          geral += tl;
+          return '<tr><td>' + li.l + '</td>' + tds + '<td class="n"><b>' + B.inteiro(tl) + '</b></td></tr>';
+        }).join('') +
+        '</tbody><tfoot><tr><td><b>Total</b></td>' + g.colunas.map(c => '<td class="n"><b>' + B.inteiro(totCols[c.p] || 0) + '</b></td>').join('') + '<td class="n"><b>' + B.inteiro(geral) + '</b></td></tr></tfoot></table>';
+    })();
+
     // Privado
     const prd = doDia(S.privado, ref), prm = doMes(S.privado, ref);
     const pvD = listaDe(prd ? [prd] : [], 'itens'), pvM = listaDe(prm, 'itens'), paM = listaDe(prm, 'alugueis'), paD = listaDe(prd ? [prd] : [], 'alugueis');
@@ -297,7 +341,11 @@ main { max-width: 1440px; }
 
     // Observações
     const obs = [];
-    B.SETORES.forEach(st => { const r = doDia(S[st.id], ref); if (r && r.obs) obs.push('<li><b>' + st.nome + '</b> <span>· ' + esc(r.responsavel || '') + '</span><br>' + esc(r.obs).replace(/\n/g, '<br>') + '</li>'); });
+    B.SETORES.forEach(st => {
+      const r = doDia(S[st.id], ref); if (!r) return;
+      const textos = st.campos.filter(c => c.t === 'texto' && r[c.k]).map(c => (c.k === 'obs' ? '' : '<i>' + esc(c.l.replace('Outros / Observações · ', '')) + ':</i> ') + esc(r[c.k]).replace(/\n/g, '<br>'));
+      if (textos.length) obs.push('<li><b>' + st.nome + '</b> <span>· ' + esc(r.responsavel || '') + '</span><br>' + textos.join('<br>') + '</li>');
+    });
     $('obs').innerHTML = obs.length ? obs.join('') : '<li class="vazio" style="border:0">Nenhuma observação registrada para ' + B.br(ref) + '.</li>';
   }
 

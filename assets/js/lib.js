@@ -7,6 +7,35 @@
 (function (root) {
   'use strict';
 
+  /* Jurídico Brisa: atividades em grade (linhas = atividade, colunas = área).
+     Cada célula vira um campo numérico "área_atividade"; células vazias são gravadas como 0. */
+  function juridicoBrisa() {
+    const grade = {
+      comercial: { p: 'com', titulo: 'Comercial', itens: [
+        { k: 'impugnacoes', l: 'Impugnações' }, { k: 'recursos', l: 'Recursos' },
+        { k: 'contrarrazoes', l: 'Contrarrazões' }, { k: 'direito_peticao', l: 'Direito de Petição' } ] },
+      colunas: [
+        { p: 'pv', l: 'Pós-Venda' }, { p: 'at', l: 'Assistência Técnica' },
+        { p: 'si', l: 'Serv. Imagem' }, { p: 'fab', l: 'Fábrica / demais setores' } ],
+      linhas: [
+        { k: 'orientacoes', l: 'Orientações', em: ['pv', 'at', 'si', 'fab'] },
+        { k: 'analises', l: 'Análises e reformulações', nota: 'Pós-Venda: contratos e documentos diversos · demais: relatórios técnicos e documentos diversos', em: ['pv', 'at', 'si', 'fab'] },
+        { k: 'confeccao', l: 'Confecção de contratos e documentos', em: ['pv'] },
+        { k: 'notificacao', l: 'Resposta à notificação', em: ['pv', 'at', 'si'] } ],
+      obs: [ { k: 'obs_com', l: 'Comercial' }, { k: 'obs_pv', l: 'Pós-Venda' }, { k: 'obs_at', l: 'Assistência Técnica' },
+             { k: 'obs_si', l: 'Serv. Imagem' }, { k: 'obs_fab', l: 'Fábrica / demais setores' } ]
+    };
+    const campos = [];
+    grade.comercial.itens.forEach(i => campos.push({ k: 'com_' + i.k, l: 'Comercial · ' + i.l + ' (nº)', t: 'int', zero: true }));
+    grade.linhas.forEach(li => grade.colunas.forEach(c => {
+      if (li.em.includes(c.p)) campos.push({ k: c.p + '_' + li.k, l: c.l + ' · ' + li.l + ' (nº)', t: 'int', zero: true });
+    }));
+    grade.obs.forEach(o => campos.push({ k: o.k, l: 'Outros / Observações · ' + o.l, t: 'texto' }));
+    return { id: 'juridico_brisa', nome: 'Jurídico Brisa', grade, campos };
+  }
+  /* Soma de todas as atividades (campos numéricos) de um registro em grade. */
+  function totalAtividades(s, r) { return r ? s.campos.filter(c => c.t === 'int').reduce((a, c) => a + (r[c.k] || 0), 0) : 0; }
+
   // ---------- Estrutura ----------
   const OBS = { k: 'obs', l: 'Observações', t: 'texto' };
   const SETORES = [
@@ -17,6 +46,7 @@
       { k: 'previsao_hoje', l: 'Previsão de recebimento para o dia seguinte (R$)', t: 'moeda', req: true },
       { k: 'recebido_mes', l: 'Total recebido no mês (R$)', t: 'moeda', req: true },
       OBS ] },
+    juridicoBrisa(),
     { id: 'publico', nome: 'Público', campos: [ OBS ],
       listas: [ { k: 'itens', titulo: 'Vendas do dia', item: 'venda', aba: 'Vendas', botao: '+ Adicionar venda', vazio: 'Sem vendas no dia? Deixe a lista vazia e salve mesmo assim.', campos: [
         { k: 'venda', l: 'Venda (órgão / processo)', t: 'texto', req: true },
@@ -171,6 +201,6 @@
   const api = { SETORES, setor, arquivoSetor, ARQ_CONFIG, VERSAO, configPadrao,
     d, hojeUTC, iso, deIso, br, brHora, ehUtil, diaUtilAnterior, contarUteis, indicadoresGeral, DIA,
     parseNum, moeda, inteiro, pct, arquivoVazio, validarArquivo, registros, gravarRegistro, excluirRegistro,
-    feriadosDe, registroDoDia, totalVendas, totalLista, qtdVendasPrivado };
+    feriadosDe, registroDoDia, totalVendas, totalLista, qtdVendasPrivado, totalAtividades };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Base = api;
 })(typeof window !== 'undefined' ? window : globalThis);

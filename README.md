@@ -15,7 +15,8 @@ Formulário diário (D-1) e dashboard para a reunião de stand up do Comercial.
 └── supabase/
     ├── 01_criar_base.sql      cria tabelas, regras de acesso, feriados e visões
     ├── 02_importar_json.sql   importa os .json da versão anterior (pasta "dados" do Teams)
-    └── 03_usuarios.sql        libera e-mails e setores
+    ├── 03_usuarios.sql        libera e-mails e setores
+    └── 04_juridico_brisa.sql  atualização: inclui o setor Jurídico Brisa (rodar uma vez em bases já criadas)
 ```
 
 ---
@@ -59,7 +60,7 @@ Os arquivos estão na pasta `dados` do Teams: `juridico.json`, `publico.json`, `
 1. No SQL Editor, abra `supabase/03_usuarios.sql`.
 2. Troque os e-mails de exemplo pelos reais, em minúsculas. Em `setores`, use:
    - `'{*}'` para administrador, com acesso a todos os setores;
-   - `'{juridico}'`, `'{privado,publico}'` etc. para setores específicos;
+   - `'{juridico}'`, `'{privado,publico}'` etc. para setores específicos. Setores: `juridico`, `juridico_brisa`, `publico`, `captacao`, `privado`, `especialista`, `geral`;
    - `'{}'` para quem só vê o dashboard.
 3. Clique em **Run**.
 
@@ -103,6 +104,7 @@ Depois de conferir os dados importados, a pasta `dados` do Teams não é mais us
 | Bloquear alguém | `update public.usuarios set ativo = false where email = '...';` |
 | Senha esquecida | Authentication > Users > clicar na pessoa > definir nova senha provisória |
 | Feriados (municipais, emendas) | Table Editor > feriados > Insert row |
+| Jurídico Brisa | Grade: Comercial (impugnações, recursos, contrarrazões, direito de petição) + atividades x áreas (Pós-Venda, Assistência Técnica, Serv. Imagem, Fábrica). Em branco = 0. Visão `v_juridico_brisa` |
 | Consultar ou exportar dados | Table Editor, visões `v_juridico`, `v_privado`, `v_geral`, `v_especialista`, `v_captacao` e `v_itens` (vendas e aluguéis, uma linha por item) |
 
 **Plano gratuito do Supabase:** projetos sem nenhum acesso por 7 dias são pausados. O uso diário evita isso. Se acontecer, entre no painel do Supabase e clique em **Restore project**.

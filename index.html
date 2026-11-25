@@ -13,7 +13,7 @@ Solicitante: rosameire.henriques@vmimedica.com.br
 <link rel="icon" href="assets/img/vmim-dourado.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/estilo.css?v=3">
+<link rel="stylesheet" href="assets/css/estilo.css?v=4">
 <style>
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
 @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
@@ -43,6 +43,20 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
 .acoes .dir { margin-left: auto; }
 .btn.perigo { background: #fff; color: var(--erro); border-color: var(--erro); }
 .btn.perigo:hover { background: var(--erro-fundo); }
+.gjur { grid-column: 1 / -1; }
+.gjur h3:first-child { margin-top: 0; }
+.gcom { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .gcom { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.gtot { padding: 8px 10px; border-radius: 6px; background: var(--fundo-suave); text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rolar-x { overflow-x: auto; }
+table.gtab td { vertical-align: middle; }
+table.gtab td input { width: 100%; min-width: 70px; padding: 6px 8px; font-size: 14px; }
+table.gtab td.na { text-align: center; color: #B5AC98; background: #F4F1EA; }
+table.gtab tfoot td { background: var(--fundo-suave); border-top: 2px solid var(--filete); }
+.gobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.gobs textarea { min-height: 54px; }
+.gtotal { margin-top: 14px; font-size: 15px; text-align: right; }
+.gtotal b { font-size: 18px; color: var(--acento); }
 .ultimos .vazio { color: var(--secundaria); font-size: 13px; }
 .navlink { font-size: 13px; }
 </style>
@@ -89,11 +103,11 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
 </main>
 <footer class="rod">VMI Médica · Acompanhamento Comercial</footer>
 
-<script src="assets/vendor/supabase.js?v=3"></script>
-<script src="assets/js/config.js?v=3"></script>
-<script src="assets/js/lib.js?v=3"></script>
-<script src="assets/js/dados.js?v=3"></script>
-<script src="assets/js/acesso.js?v=3"></script>
+<script src="assets/vendor/supabase.js?v=4"></script>
+<script src="assets/js/config.js?v=4"></script>
+<script src="assets/js/lib.js?v=4"></script>
+<script src="assets/js/dados.js?v=4"></script>
+<script src="assets/js/acesso.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -134,7 +148,7 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
   };
   function renderCampos() {
     const s = B.setor(setorAtual);
-    $('campos').innerHTML = s.campos.map(c => {
+    $('campos').innerHTML = s.grade ? htmlGrade(s) : s.campos.map(c => {
       const id = 'f_' + c.k, req = c.req ? '<span class="req">*</span>' : '';
       let inp;
       if (c.t === 'texto') inp = '<textarea id="' + id + '" data-k="' + c.k + '" maxlength="2000"></textarea>';
@@ -149,6 +163,33 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
     });
     $('campos').querySelectorAll('input[type="number"]').forEach(e => e.addEventListener('input', recalcular));
     renderListas(s);
+  }
+  /* Jurídico Brisa: Comercial + grade atividade x área + observações por área */
+  function inpNum(k) { return '<input id="f_' + k + '" data-k="' + k + '" class="num" type="number" min="0" step="1" inputmode="numeric" placeholder="0" aria-label="' + B.setor(setorAtual).campos.find(c => c.k === k).l + '">'; }
+  function htmlGrade(s) {
+    const g = s.grade;
+    let h = '<div class="gjur"><h3>' + g.comercial.titulo + '</h3><div class="gcom">' +
+      g.comercial.itens.map(i => '<div class="campo"><label for="f_com_' + i.k + '">' + i.l + '</label>' + inpNum('com_' + i.k) + '</div>').join('') +
+      '<div class="campo"><label>Total Comercial</label><div class="gtot" data-tot="com">0</div></div></div>';
+    h += '<h3>Pós-Venda, Assistência Técnica, Serv. Imagem e Fábrica</h3><div class="ajuda" style="margin:-4px 0 8px">Digite a quantidade no cruzamento da atividade com a área. Em branco conta como 0. "—" = atividade que não se aplica à área.</div>' +
+      '<div class="rolar-x"><table class="tab gtab"><thead><tr><th>Atividade</th>' + g.colunas.map(c => '<th class="n">' + c.l + '</th>').join('') + '<th class="n">Total</th></tr></thead><tbody>' +
+      g.linhas.map(li => '<tr><td><b>' + li.l + '</b>' + (li.nota ? '<div class="ajuda">' + li.nota + '</div>' : '') + '</td>' +
+        g.colunas.map(c => li.em.includes(c.p) ? '<td>' + inpNum(c.p + '_' + li.k) + '</td>' : '<td class="na" title="Não se aplica">—</td>').join('') +
+        '<td class="n"><b data-tot="l_' + li.k + '">0</b></td></tr>').join('') +
+      '</tbody><tfoot><tr><td><b>Total</b></td>' + g.colunas.map(c => '<td class="n"><b data-tot="c_' + c.p + '">0</b></td>').join('') + '<td class="n"><b data-tot="geral">0</b></td></tr></tfoot></table></div>';
+    h += '<h3>Outros / Observações</h3><div class="gobs">' +
+      g.obs.map(o => '<div class="campo"><label for="f_' + o.k + '">' + o.l + '</label><textarea id="f_' + o.k + '" data-k="' + o.k + '" maxlength="2000" rows="2"></textarea></div>').join('') + '</div>';
+    h += '<div class="gtotal">Total de atividades do dia: <b data-tot="tudo">0</b></div></div>';
+    return h;
+  }
+  function totaisGrade() {
+    const s = B.setor(setorAtual), g = s.grade; if (!g) return;
+    const v = k => lerNum(k) || 0, put = (k, n) => { const e = document.querySelector('[data-tot="' + k + '"]'); if (e) e.textContent = B.inteiro(n); };
+    const com = g.comercial.itens.reduce((a, i) => a + v('com_' + i.k), 0); put('com', com);
+    let geral = 0;
+    g.linhas.forEach(li => put('l_' + li.k, li.em.reduce((a, p) => a + v(p + '_' + li.k), 0)));
+    g.colunas.forEach(c => { const t = g.linhas.filter(li => li.em.includes(c.p)).reduce((a, li) => a + v(c.p + '_' + li.k), 0); geral += t; put('c_' + c.p, t); });
+    put('geral', geral); put('tudo', geral + com);
   }
   /* Listas de itens do dia (vendas do Público; vendas e propostas de aluguel do Privado) */
   function renderListas(s) {
@@ -224,6 +265,7 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
 
   function calc(r, v) { return '<div class="calc"><div class="r">' + r + '</div><div class="v">' + v + '</div></div>'; }
   function recalcular() {
+    totaisGrade();
     const data = dataSel(); let h = '';
     if (setorAtual === 'juridico') {
       const p = lerNum('previsto_d1'), r = lerNum('recebido_d1');
@@ -267,7 +309,8 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
     if (!dados) return;
     const l = lista(setorAtual).slice(-8).reverse();
     if (!l.length) { el.innerHTML = '<div class="vazio">Nenhum registro deste setor ainda.</div>'; return; }
-    const principal = s.id === 'publico' ? { l: 'Vendas do dia', f: r => B.moeda(B.totalVendas(r)) }
+    const principal = s.grade ? { l: 'Total de atividades', f: r => B.inteiro(B.totalAtividades(s, r)) }
+      : s.id === 'publico' ? { l: 'Vendas do dia', f: r => B.moeda(B.totalVendas(r)) }
       : (c => ({ l: c.l.replace(/ \((R\$|nº)\)/, ''), f: r => (c.t === 'moeda' ? B.moeda : B.inteiro)(r[c.k]) }))(s.campos.find(c => c.t !== 'texto' && !c.calc));
     el.innerHTML = '<table class="tab"><thead><tr><th>Data</th><th class="n">' + principal.l + '</th><th>Responsável</th></tr></thead><tbody>' +
       l.map(r => '<tr><td><a href="#" data-d="' + B.iso(r.data_ref) + '">' + B.br(r.data_ref) + '</a></td><td class="n">' + principal.f(r) + '</td><td>' + esc(r.responsavel) + '</td></tr>').join('') + '</tbody></table>' +
@@ -290,6 +333,7 @@ input.num { text-align: right; font-variant-numeric: tabular-nums; }
       if (c.t === 'texto') { rec[c.k] = el.value.trim(); return; }
       const raw = el.value.trim(), n = B.parseNum(raw);
       if (raw && n == null) return marca(el, c.l + ': valor inválido.');
+      if (c.zero && n == null) { rec[c.k] = 0; return; }
       if (c.req && !c.calc && n == null) return marca(el, c.l + ': obrigatório.');
       if (n != null && n < 0 && !c.calc) return marca(el, c.l + ': não pode ser negativo.');
       if (c.t === 'int' && n != null && !Number.isInteger(n)) return marca(el, c.l + ': use número inteiro.');

@@ -13,7 +13,7 @@
 -- ---------------------------------------------------------------------
 
 -- Quem pode usar o sistema e quais setores cada pessoa preenche.
--- setores: lista com 'juridico','publico','captacao','privado','especialista','geral'
+-- setores: lista com 'juridico','juridico_brisa','publico','captacao','privado','especialista','geral'
 --          ou '{*}' para todos (administrador). Lista vazia = só visualiza o dashboard.
 create table if not exists public.usuarios (
   email      text primary key check (email = lower(email)),
@@ -27,7 +27,7 @@ create table if not exists public.usuarios (
 -- no mesmo formato usado pelos arquivos .json da versão anterior.
 create table if not exists public.registros (
   id             bigint generated always as identity primary key,
-  setor          text not null check (setor in ('juridico','publico','captacao','privado','especialista','geral')),
+  setor          text not null check (setor in ('juridico','juridico_brisa','publico','captacao','privado','especialista','geral')),
   data_ref       date not null,
   dados          jsonb not null default '{}'::jsonb,
   responsavel    text not null,
@@ -137,7 +137,7 @@ declare
   v_lista jsonb;
   v_n     integer;
 begin
-  if p_setor not in ('juridico','publico','captacao','privado','especialista','geral') then
+  if p_setor not in ('juridico','juridico_brisa','publico','captacao','privado','especialista','geral') then
     raise exception 'Setor inválido: %', p_setor;
   end if;
   if jsonb_typeof(p_conteudo) = 'object' then
@@ -257,6 +257,24 @@ where r.setor in ('publico','privado');
 
 grant select on public.v_juridico, public.v_captacao, public.v_privado, public.v_especialista, public.v_geral, public.v_itens to authenticated;
 revoke all on public.v_juridico, public.v_captacao, public.v_privado, public.v_especialista, public.v_geral, public.v_itens from anon;
+
+create or replace view public.v_juridico_brisa with (security_invoker = true) as
+select data_ref,
+       (dados->>'com_impugnacoes')::int as comercial_impugnacoes, (dados->>'com_recursos')::int as comercial_recursos,
+       (dados->>'com_contrarrazoes')::int as comercial_contrarrazoes, (dados->>'com_direito_peticao')::int as comercial_direito_peticao,
+       (dados->>'pv_orientacoes')::int as pos_venda_orientacoes, (dados->>'pv_analises')::int as pos_venda_analises,
+       (dados->>'pv_confeccao')::int as pos_venda_confeccao_contratos, (dados->>'pv_notificacao')::int as pos_venda_resposta_notificacao,
+       (dados->>'at_orientacoes')::int as assist_tecnica_orientacoes, (dados->>'at_analises')::int as assist_tecnica_analises,
+       (dados->>'at_notificacao')::int as assist_tecnica_resposta_notificacao,
+       (dados->>'si_orientacoes')::int as serv_imagem_orientacoes, (dados->>'si_analises')::int as serv_imagem_analises,
+       (dados->>'si_notificacao')::int as serv_imagem_resposta_notificacao,
+       (dados->>'fab_orientacoes')::int as fabrica_orientacoes, (dados->>'fab_analises')::int as fabrica_analises,
+       dados->>'obs_com' as obs_comercial, dados->>'obs_pv' as obs_pos_venda, dados->>'obs_at' as obs_assist_tecnica,
+       dados->>'obs_si' as obs_serv_imagem, dados->>'obs_fab' as obs_fabrica,
+       responsavel, registrado_por, registrado_em
+from public.registros where setor = 'juridico_brisa';
+grant select on public.v_juridico_brisa to authenticated;
+revoke all on public.v_juridico_brisa from anon;
 
 -- ---------------------------------------------------------------------
 -- 7. Atualização em tempo real do dashboard
